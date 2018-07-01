@@ -1,5 +1,5 @@
 var multicast = require('@distdns/core')
-var dns = require('dns-socket')
+var dns = require('@distdns/socket')
 var events = require('events')
 var util = require('util')
 var crypto = require('crypto')
