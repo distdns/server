@@ -1,0 +1,36 @@
+{
+  "name": "@distdns/server",
+  "version": "0.1.1",
+  "description": "dWeb dDNS Server For Peer Revelation Over The Distributed Web Using Regular and Multicast DNS Libraries.",
+  "contributors": [
+    "Jared Rice Sr. <jared@dwebs.io>",
+    "Distributed Webs Project, LLC. <labs@distributedwebs.org>"
+  ],
+  "license": "MIT",
+  "main": "index.js",
+  "scripts": {
+    "test": "standard && tape test.js"
+  },
+  "bin": {
+    "ddns": "./bin.js"
+  },
+  "dependencies": {
+    "@distdns/core": "distdns/core#master",
+    "@distdns/socket": "distdns/socket#master",
+    "@dwcore/channel": "dwcore/channel#master",
+    "@dwcore/netspeed": "dwcore/netspeed#master",
+    "circular-append-file": "^1.0.1",
+    "debug": "^2.6.9",
+    "lru": "^2.0.0",
+    "minimist": "^1.2.0",
+    "network-address": "^1.1.2",
+    "unordered-set": "^1.1.0"
+  },
+  "devDependencies": {
+    "standard": "^11.0.0",
+    "tape": "^4.9.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
