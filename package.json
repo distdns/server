@@ -1,6 +1,6 @@
 {
   "name": "@distdns/server",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "dWeb dDNS Server For Peer Revelation Over The Distributed Web Using Regular and Multicast DNS Libraries.",
   "contributors": [
     "Jared Rice Sr. <jared@dwebs.io>",
