@@ -1,10 +1,10 @@
-var multicast = require('@distdns/core')
 var dns = require('@distdns/socket')
 var events = require('events')
 var util = require('util')
 var crypto = require('crypto')
 var network = require('network-address')
-var debug = require('debug')('@distdns/server')
+var multicast = require('@distdns/core')
+var debug = require('debug')('ddns')
 var store = require('./store')
 
 var IPv4 = /^\d{1,3}\.\d{1,3}\.\d{1,3}.\d{1,3}$/
@@ -14,10 +14,10 @@ const TYPE_LOOKUP = 1
 const TYPE_ANNOUNCE = 2
 const TYPE_UNANNOUNCE = 3
 
-module.exports = DWebDNSRevelation
+module.exports = DNSRevelation
 
-function DWebDNSRevelation (opts) {
-  if (!(this instanceof DWebDNSRevelation)) return new DWebDNSRevelation(opts)
+function DNSRevelation (opts) {
+  if (!(this instanceof DNSRevelation)) return new DNSRevelation(opts)
   if (!opts) opts = {}
 
   events.EventEmitter.call(this)
@@ -97,13 +97,13 @@ function DWebDNSRevelation (opts) {
   }
 }
 
-util.inherits(DWebDNSRevelation, events.EventEmitter)
+util.inherits(DNSRevelation, events.EventEmitter)
 
-DWebDNSRevelation.prototype.toJSON = function () {
+DNSRevelation.prototype.toJSON = function () {
   return this._domainStore.toJSON()
 }
 
-DWebDNSRevelation.prototype._onsocket = function (socket) {
+DNSRevelation.prototype._onsocket = function (socket) {
   var self = this
 
   this._sockets.push(socket)
@@ -128,7 +128,7 @@ DWebDNSRevelation.prototype._onsocket = function (socket) {
   }
 }
 
-DWebDNSRevelation.prototype._rotateSecrets = function () {
+DNSRevelation.prototype._rotateSecrets = function () {
   if (this._listening) {
     debug('Rotating secrets')
     this._secrets.shift()
@@ -146,7 +146,7 @@ DWebDNSRevelation.prototype._rotateSecrets = function () {
   this._tick++
 }
 
-DWebDNSRevelation.prototype._onmulticastquery = function (query, port, host) {
+DNSRevelation.prototype._onmulticastquery = function (query, port, host) {
   var reply = {questions: query.questions, answers: []}
   var i = 0
 
@@ -166,7 +166,7 @@ DWebDNSRevelation.prototype._onmulticastquery = function (query, port, host) {
   }
 }
 
-DWebDNSRevelation.prototype._onmulticastresponse = function (response, port, host) {
+DNSRevelation.prototype._onmulticastresponse = function (response, port, host) {
   var i = 0
 
   for (i = 0; i < response.answers.length; i++) {
@@ -177,7 +177,7 @@ DWebDNSRevelation.prototype._onmulticastresponse = function (response, port, hos
   }
 }
 
-DWebDNSRevelation.prototype._onanswer = function (answer, port, host, socket) {
+DNSRevelation.prototype._onanswer = function (answer, port, host, socket) {
   var domain = parseDomain(answer.name)
   var id = parseId(answer.name, domain)
   if (!id) {
@@ -248,7 +248,7 @@ DWebDNSRevelation.prototype._onanswer = function (answer, port, host, socket) {
   }
 }
 
-DWebDNSRevelation.prototype._push = function (id, port, host, socket) {
+DNSRevelation.prototype._push = function (id, port, host, socket) {
   var subs = this._pushStore.get(id, 16)
   var query = {
     additionals: [{
@@ -270,7 +270,7 @@ DWebDNSRevelation.prototype._push = function (id, port, host, socket) {
   }
 }
 
-DWebDNSRevelation.prototype._onquestion = function (query, port, host, answers, multicast) {
+DNSRevelation.prototype._onquestion = function (query, port, host, answers, multicast) {
   var domain = parseDomain(query.name)
 
   if (query.type === 'TXT' && domain === query.name) {
@@ -341,7 +341,7 @@ DWebDNSRevelation.prototype._onquestion = function (query, port, host, answers, 
   }
 }
 
-DWebDNSRevelation.prototype._onquery = function (query, port, host, socket) {
+DNSRevelation.prototype._onquery = function (query, port, host, socket) {
   var reply = {questions: query.questions, answers: []}
   var i = 0
 
@@ -359,7 +359,7 @@ DWebDNSRevelation.prototype._onquery = function (query, port, host, socket) {
   this.emit('traffic', 'out:response', {message: reply, peer: {port: port, host: host}})
 }
 
-DWebDNSRevelation.prototype._probeAndSend = function (type, i, id, port, cb) {
+DNSRevelation.prototype._probeAndSend = function (type, i, id, port, cb) {
   var self = this
   this._probe(i, 0, function (err) {
     if (err) return cb(err)
@@ -367,7 +367,7 @@ DWebDNSRevelation.prototype._probeAndSend = function (type, i, id, port, cb) {
   })
 }
 
-DWebDNSRevelation.prototype._send = function (type, i, id, port, cb) {
+DNSRevelation.prototype._send = function (type, i, id, port, cb) {
   var s = this.servers[i]
   var token = this._tokens[i]
   var data = null
@@ -404,22 +404,22 @@ DWebDNSRevelation.prototype._send = function (type, i, id, port, cb) {
   this.emit('traffic', 'out:query', {message: query, peer: s})
 }
 
-DWebDNSRevelation.prototype.lookup = function (id, opts, cb) {
+DNSRevelation.prototype.lookup = function (id, opts, cb) {
   debug('lookup()', id)
   this._visit(TYPE_LOOKUP, id, 0, opts, cb)
 }
 
-DWebDNSRevelation.prototype.announce = function (id, port, opts, cb) {
+DNSRevelation.prototype.announce = function (id, port, opts, cb) {
   debug('announce()', id)
   this._visit(TYPE_ANNOUNCE, id, port, opts, cb)
 }
 
-DWebDNSRevelation.prototype.unannounce = function (id, port, opts, cb) {
+DNSRevelation.prototype.unannounce = function (id, port, opts, cb) {
   debug('unannounce()', id)
   this._visit(TYPE_UNANNOUNCE, id, port, opts, cb)
 }
 
-DWebDNSRevelation.prototype._visit = function (type, id, port, opts, cb) {
+DNSRevelation.prototype._visit = function (type, id, port, opts, cb) {
   if (typeof opts === 'function') return this._visit(type, id, port, null, opts)
   if (typeof port === 'function') return this._visit(type, id, 0, port)
   if (!cb) cb = noop
@@ -478,7 +478,7 @@ DWebDNSRevelation.prototype._visit = function (type, id, port, opts, cb) {
   }
 }
 
-DWebDNSRevelation.prototype._parsePeers = function (id, data, host) {
+DNSRevelation.prototype._parsePeers = function (id, data, host) {
   try {
     var buf = Buffer.from(data.peers, 'base64')
   } catch (err) {
@@ -493,7 +493,7 @@ DWebDNSRevelation.prototype._parsePeers = function (id, data, host) {
   }
 }
 
-DWebDNSRevelation.prototype._parseData = function (id, data, index, host) {
+DNSRevelation.prototype._parseData = function (id, data, index, host) {
   if (data.token) {
     this._tokens[index] = data.token
     this._tokensAge[index] = this._tick
@@ -501,7 +501,7 @@ DWebDNSRevelation.prototype._parseData = function (id, data, index, host) {
   if (data && data.peers && id) this._parsePeers(id, data, host)
 }
 
-DWebDNSRevelation.prototype.whoami = function (cb) {
+DNSRevelation.prototype.whoami = function (cb) {
   var missing = this.servers.length
   var prevData = null
   var prevHost = null
@@ -544,7 +544,7 @@ DWebDNSRevelation.prototype.whoami = function (cb) {
   }
 }
 
-DWebDNSRevelation.prototype._probe = function (i, retries, cb) {
+DNSRevelation.prototype._probe = function (i, retries, cb) {
   var self = this
   var s = this.servers[i]
   var q = {
@@ -599,7 +599,7 @@ DWebDNSRevelation.prototype._probe = function (i, retries, cb) {
   }
 }
 
-DWebDNSRevelation.prototype.destroy = function (onclose) {
+DNSRevelation.prototype.destroy = function (onclose) {
   debug('destroy()')
   if (onclose) this.once('close', onclose)
 
@@ -621,7 +621,7 @@ DWebDNSRevelation.prototype.destroy = function (onclose) {
   }
 }
 
-DWebDNSRevelation.prototype.listen = function (ports, onlistening) {
+DNSRevelation.prototype.listen = function (ports, onlistening) {
   if (onlistening) this.once('listening', onlistening)
   if (this._listening) throw new Error('Server is already listening')
   this._listening = true
